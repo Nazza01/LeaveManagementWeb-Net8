@@ -119,6 +119,18 @@ namespace LeaveManagement.Web.Controllers
             return View(leaveTypeVM);
         }
 
+        public async Task<IActionResult> Delete(int id)
+        {
+            var leaveType = await leaveTypeRepository.GetAsync(id);
+            
+            if (leaveType == null)
+            {
+                return NotFound();
+            }
+            return View(leaveType);
+
+        }
+
         // POST: LeaveTypes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
