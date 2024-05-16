@@ -106,7 +106,7 @@ namespace LeaveManagement.Web.Migrations
                         {
                             Id = "408aa945-3d84-4421-8342-7269ec64d949",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "8b264a7b-9ddc-4854-8069-b31f766aac05",
+                            ConcurrencyStamp = "2b4e7570-8360-47e3-a031-a93182e66c67",
                             DateJoined = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfBirth = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@localhost.com",
@@ -116,9 +116,9 @@ namespace LeaveManagement.Web.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAW4vOIXS5/5uqaU3oRY+2V/KN/s1x6bxMCzUTalen3ThjPGXEJ4bcSaSqTK1bJlwQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEK1kSoOSouq/SxnLG/N1l7ex1DdvsNzWnk24cDe80g3mZlEY48UvWgMYMhEfx4/csg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "28d7c3d2-96d0-41e4-b5f0-134ab2a9d247",
+                            SecurityStamp = "9eb5c85c-27be-4e20-b36b-de1d62cedded",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         },
@@ -126,7 +126,7 @@ namespace LeaveManagement.Web.Migrations
                         {
                             Id = "3f4631bd-f907-4409-b416-ba356312e659",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "c2d2e4cb-0c3e-4385-9a07-cb08a9b4a9bd",
+                            ConcurrencyStamp = "8f170ba0-5b95-496d-a942-046a13e1149a",
                             DateJoined = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfBirth = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "user@localhost.com",
@@ -136,9 +136,9 @@ namespace LeaveManagement.Web.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "USER@LOCALHOST.COM",
                             NormalizedUserName = "USER@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEH2THUpjxHHwxXg+16/BLiDdiVmoAumGDcV7dOD8AiGeqTjJQ/kYul+S+U5AFxe+Iw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJdbbQHzoBMO6m3VjmzfQv2LnuiHjdSPPwtN3xGaQh2S6f6/R1DUX2nMvvqejYZIGQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "5bb1f50f-0789-451b-9fe9-0dc2fecd4f24",
+                            SecurityStamp = "8f510105-0213-49b6-a286-a788686ce1e0",
                             TwoFactorEnabled = false,
                             UserName = "user@localhost.com"
                         });
@@ -176,6 +176,52 @@ namespace LeaveManagement.Web.Migrations
                     b.HasIndex("LeaveTypeId");
 
                     b.ToTable("LeaveAllocations");
+                });
+
+            modelBuilder.Entity("LeaveManagement.Web.Data.LeaveRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Cancelled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateRequested")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool?>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LeaveTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RequestComments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestingEmployeeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeaveTypeId");
+
+                    b.ToTable("LeaveRequests");
                 });
 
             modelBuilder.Entity("LeaveManagement.Web.Data.LeaveType", b =>
@@ -368,6 +414,17 @@ namespace LeaveManagement.Web.Migrations
                 });
 
             modelBuilder.Entity("LeaveManagement.Web.Data.LeaveAllocation", b =>
+                {
+                    b.HasOne("LeaveManagement.Web.Data.LeaveType", "LeaveType")
+                        .WithMany()
+                        .HasForeignKey("LeaveTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LeaveType");
+                });
+
+            modelBuilder.Entity("LeaveManagement.Web.Data.LeaveRequest", b =>
                 {
                     b.HasOne("LeaveManagement.Web.Data.LeaveType", "LeaveType")
                         .WithMany()

@@ -1,0 +1,97 @@
+﻿@model EmployeeLeaveRequestViewVM
+
+@{
+    ViewData["Title"] = "My Leave";
+}
+
+<h4>Leave Allocations</h4>
+<table class="tableAllSortNoEntries">
+	<thead>
+		<tr>
+			<th>Leave Name</th>
+			<th>Allocated Days</th>
+			<th>Remaining Days</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var allocation in Model.LeaveAllocations)
+		{
+			<tr>
+				<td>@allocation.LeaveType.Name</td>
+				<td>@allocation.LeaveType.DefaultDays</td>
+				<td>@allocation.NumberOfDays</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+<hr />
+<h2>Current Requests</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.LeaveRequests[0].StartDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LeaveRequests[0].EndDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LeaveRequests[0].LeaveType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LeaveRequests[0].DateRequested)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LeaveRequests[0].IsApproved)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.LeaveRequests)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StartDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EndDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LeaveType.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DateRequested)
+                </td>
+                <td>
+                    @if (item.Cancelled)
+                    {
+                        <span class="badge bg-secondary">Cancelled</span>
+                    }
+                    else if (item.IsApproved == null)
+                    {
+                        <span class="badge bg-warning">Pending</span>
+                    }
+                    else if(item.IsApproved.Value)
+                    {
+                        <span class="badge bg-success">Approved</span>
+                    }
+                    else if(item.IsApproved.Value == false)
+                    {
+                        <span class="badge bg-danger">Rejected</span>
+                    }
+                </td>
+                <td>
+                    @if (item.IsApproved == null)
+                    {
+                        <form asp-action="Cancel">
+                            <input asp-action="@item.Id" type="hidden" name="Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">Cancel Request</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
