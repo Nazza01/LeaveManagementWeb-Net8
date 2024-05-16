@@ -51,7 +51,7 @@
     <tbody>
         @foreach (var item in Model.LeaveRequests)
         {
-            <tr>
+            <tr> 
                 <td>
                     @Html.DisplayFor(modelItem => item.StartDate)
                 </td>
@@ -83,10 +83,10 @@
                     }
                 </td>
                 <td>
-                    @if (item.IsApproved == null)
+                    @if (item.IsApproved == null && item.Cancelled == false)
                     {
-                        <form asp-action="Cancel">
-                            <input asp-action="@item.Id" type="hidden" name="Id" />
+                        <form id="cancelForm" asp-action="Cancel">
+                            <input asp-for="@item.Id" name="id" type="hidden" id="cancelLeaveTypeId" />
                             <button type="submit" class="btn btn-danger btn-sm">Cancel Request</button>
                         </form>
                     }
