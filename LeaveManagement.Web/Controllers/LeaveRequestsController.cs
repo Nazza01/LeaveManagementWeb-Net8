@@ -1,24 +1,28 @@
-﻿using LeaveManagement.Web.Constants;
-using LeaveManagement.Web.Contracts;
-using LeaveManagement.Web.Data;
-using LeaveManagement.Web.Models;
+﻿using LeaveManagement.Application.Contracts;
+using LeaveManagement.Common.Constants;
+using LeaveManagement.Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace LeaveManagement.Web.Controllers
 {
     [Authorize]
     public class LeaveRequestsController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly ILeaveRequestRepository leaveRequestRepository;
+        private readonly ILeaveTypeRepository leaveTypeRepository;
+        private readonly ILogger<LeaveRequestsController> logger;
 
-        public LeaveRequestsController(ApplicationDbContext context, ILeaveRequestRepository leaveRequestRepository)
+        public LeaveRequestsController(
+            ILeaveRequestRepository leaveRequestRepository,
+            ILeaveTypeRepository leaveTypeRepository,
+            ILogger<LeaveRequestsController> logger
+        )
         {
-            _context = context;
             this.leaveRequestRepository = leaveRequestRepository;
+            this.leaveTypeRepository = leaveTypeRepository;
+            this.logger = logger;
         }
 
         [Authorize(Roles = Roles.Administrator)]
@@ -35,6 +39,18 @@ namespace LeaveManagement.Web.Controllers
             return View(model);
         }
 
+        // GET: LeaveRequests/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            var model = await leaveRequestRepository.GetLeaveRequestAsync(id);
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            return View(model);
+        }
+
         // POST: LeaveRequests/ApproveRequest/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -46,21 +62,10 @@ namespace LeaveManagement.Web.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error Approving Request");
                 throw;
             }
             return RedirectToAction(nameof(Index));
-        }
-
-        // GET: LeaveRequests/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            var model = await leaveRequestRepository.GetLeaveRequestAsync(id);
-            if (model == null)
-            {
-                return NotFound();
-            }
-
-            return View(model);
         }
 
         // POST: LeaveRequests/Cancel/id
@@ -74,19 +79,20 @@ namespace LeaveManagement.Web.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error Cancelling Request");
+
                 throw;
             }
 
             return RedirectToAction(nameof(MyLeave));
         }
 
-
         // GET: LeaveRequests/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             var model = new LeaveRequestCreateVM
             {
-                LeaveTypes = new SelectList(_context.LeaveTypes, "Id", "Name")
+                LeaveTypes = new SelectList(await leaveTypeRepository.GetAllAsync(), "Id", "Name")
             };
 
             return View(model);
@@ -103,7 +109,7 @@ namespace LeaveManagement.Web.Controllers
                 {
                     var isValidRequest = await leaveRequestRepository.CreateLeaveRequest(model);
 
-                    if (isValidRequest == true)
+                    if (isValidRequest)
                     {
                         return RedirectToAction(nameof(MyLeave));
                     }
@@ -112,103 +118,14 @@ namespace LeaveManagement.Web.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error Creating Request");
                 ModelState.AddModelError(string.Empty, "An error has occurred. Please Try Again Later");
             }
 
-            model.LeaveTypes = new SelectList(_context.LeaveTypes, "Id", "Name", model.LeaveTypeId);
+            model.LeaveTypes = new SelectList(await leaveTypeRepository.GetAllAsync(), "Id", "Name", model.LeaveTypeId);
 
             return View(model);
 
-        }
-
-        // GET: LeaveRequests/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var leaveRequest = await _context.LeaveRequests.FindAsync(id);
-            if (leaveRequest == null)
-            {
-                return NotFound();
-            }
-            ViewData["LeaveTypeId"] = new SelectList(_context.LeaveTypes, "Id", "Id", leaveRequest.LeaveTypeId);
-            return View(leaveRequest);
-        }
-
-        // POST: LeaveRequests/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("StartDate,EndDate,LeaveTypeId,DateRequested,RequestComments,IsApproved,Cancelled,RequestingEmployeeId,Id,DateCreated,DateModified")] LeaveRequest leaveRequest)
-        {
-            if (id != leaveRequest.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(leaveRequest);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!LeaveRequestExists(leaveRequest.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["LeaveTypeId"] = new SelectList(_context.LeaveTypes, "Id", "Id", leaveRequest.LeaveTypeId);
-            return View(leaveRequest);
-        }
-
-        // GET: LeaveRequests/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var leaveRequest = await _context.LeaveRequests
-                .Include(l => l.LeaveType)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (leaveRequest == null)
-            {
-                return NotFound();
-            }
-
-            return View(leaveRequest);
-        }
-
-        // POST: LeaveRequests/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var leaveRequest = await _context.LeaveRequests.FindAsync(id);
-            if (leaveRequest != null)
-            {
-                _context.LeaveRequests.Remove(leaveRequest);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool LeaveRequestExists(int id)
-        {
-            return _context.LeaveRequests.Any(e => e.Id == id);
         }
     }
 }

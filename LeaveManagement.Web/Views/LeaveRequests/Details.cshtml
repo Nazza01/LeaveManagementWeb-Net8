@@ -71,12 +71,12 @@
         <div class="d-inline-flex gap-2">
             <form asp-action="ApproveRequest">
                 <input name="Id" value="@Model.Id" type="hidden" />
-                <input name="approved" type="hidden" value="true"  />
+                <input name="approval" type="hidden" value="true"  />
                 <button type="submit" class="btn btn-success">Approve</button>
             </form>
             <form asp-action="ApproveRequest">
                 <input name="Id" value="@Model.Id" type="hidden" />
-                <input name="approved" type="hidden" value="false"  />
+                <input name="approval" type="hidden" value="false" />
                 <button type="submit" class="btn btn-danger">Reject</button>
             </form>
         </div>
